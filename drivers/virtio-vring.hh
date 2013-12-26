@@ -126,6 +126,7 @@ class virtio_driver;
 
         // Ring operations
         bool add_buf(void* cookie);
+        void add_buf_wait(void* cookie);
         // Get the top item from the used ring
         void* get_buf_elem(u32 *len);
         // Let the host know we consumed the used entry
@@ -148,6 +149,9 @@ class virtio_driver;
         bool refill_ring_cond();
         bool use_indirect(int desc_needed);
         bool kick();
+        bool prepare_kick();
+        void do_kick();
+
         // Total number of descriptors in ring
         int size() {return _num;}
 
@@ -186,18 +190,6 @@ class virtio_driver;
             _sg_vec.emplace_back(paddr, len, vring_desc::VRING_DESC_F_WRITE);
         }
 
-        void add_buf_wait(void* cookie)
-        {
-            while (!add_buf(cookie)) {
-                _waiter.reset(*sched::thread::current());
-                while (!avail_ring_has_room(_sg_vec.size())) {
-                    sched::thread::wait_until([this] {return this->used_ring_can_gc();});
-                    get_buf_gc();
-                }
-                _waiter.clear();
-            }
-        }
-
         void wakeup_waiter()
         {
             _waiter.wake();
@@ -210,6 +202,7 @@ class virtio_driver;
         sched::thread_handle _waiter;
 
         u16 avail_head() const {return _avail_head;};
+        u16 avail_count() const {return _avail_count;};
 
     private:
 

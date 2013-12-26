@@ -21,7 +21,7 @@
 static std::chrono::high_resolution_clock s_clock;
 
 std::atomic<int> bio_inflights(0);
-std::atomic<int> bytes_written(0);
+std::atomic<long> bytes_written(0);
 
 static void bio_done(struct bio* bio)
 {
@@ -46,15 +46,16 @@ int main(int argc, char const *argv[])
 
     const std::chrono::seconds test_duration(10);
     const int buf_size = 4*KB;
-    int total = 0;
-    int offset = 0;
+
+    long total = 0;
+    long offset = 0;
 
     auto test_start = s_clock.now();
     auto end_at = test_start + test_duration;
 
     stat_printer _stat_printer(bytes_written, [] (float bytes_per_second) {
         printf("%.3f Mb/s\n", (float)bytes_per_second / MB);
-    }, 1000);
+    }, 500);
 
     while (s_clock.now() < end_at) {
         auto bio = alloc_bio();
@@ -80,6 +81,8 @@ int main(int argc, char const *argv[])
     auto test_end = s_clock.now();
     _stat_printer.stop();
 
-    printf("Wrote %.3f MB in %.2f s\n", (float) total / MB, to_seconds(test_end - test_start));
+    auto actual_test_duration = to_seconds(test_end - test_start);
+    printf("Wrote %.3f MB in %.2f s = %.3f Mb/s\n", (float) total / MB, actual_test_duration,
+            (float) total / MB / actual_test_duration);
     return 0;
 }

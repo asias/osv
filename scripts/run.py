@@ -56,7 +56,12 @@ def start_osv_qemu(options):
         "-gdb", "tcp::1234,server,nowait",
         "-m", options.memsize,
         "-smp", options.vcpus]
-
+    #img2 = "/home/asias/img/scsi2.img"
+    #img1 = "/home/asias/img/scsi1.img"
+    #img1 = "/dev/ram1"
+    #img2 = "/dev/ram0"
+    img1 = "/dev/sdd"
+    img2 = "/dev/sde"
     if (options.scsi):
         args += [
         "-device", "virtio-scsi-pci,id=scsi0",
@@ -65,7 +70,14 @@ def start_osv_qemu(options):
     else:
         args += [
         "-device", "virtio-blk-pci,id=blk0,bootindex=0,drive=hd0,scsi=off",
-        "-drive", "file=%s,if=none,id=hd0,aio=native,cache=%s" % (options.image_file, cache)]
+        "-drive", "file=%s,if=none,id=hd0,cache=%s,aio=native" % (options.image_file, "unsafe"),
+        "-device", "virtio-blk-pci,id=blk1,bootindex=1,drive=hd1,scsi=off,ioeventfd=on,x-data-plane=on,config-wce=off,event_idx=on,indirect_desc=off",
+        "-drive", "file=%s,if=none,id=hd1,cache=%s,aio=native" % (img1, "none"),
+        "-device", "virtio-scsi-pci,id=scsi0",
+        "-drive", "file=%s,if=none,id=hd2,media=disk,aio=native,cache=%s" % (img2, "none"),
+        "-device", "scsi-hd,bus=scsi0.0,drive=hd2,lun=0,bootindex=2",
+	#"-device", "vhost-scsi-pci,wwpn=naa.5001405d8ed97bf0,event_idx=off",
+	]
     
     if (options.no_shutdown):
         args += ["-no-reboot", "-no-shutdown"]
@@ -113,6 +125,7 @@ def start_osv_qemu(options):
 
         qemu_env['OSV_BRIDGE'] = options.bridge
         subprocess.call(["qemu-system-x86_64"] + args, env = qemu_env)
+        #subprocess.call(["/opt/qemu/bin/qemu-system-x86_64"] + args, env = qemu_env)
     except OSError, e:
         if e.errno == errno.ENOENT:
           print("'qemu-system-x86_64' binary not found. Please install the qemu-system-x86 package.")

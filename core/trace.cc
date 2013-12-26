@@ -45,7 +45,7 @@ struct tracepoint_patch_sites_type {
 tracepoint_patch_sites_type tracepoint_patch_sites;
 
 constexpr size_t trace_page_size = 4096;  // need not match arch page size
-constexpr unsigned max_trace = trace_page_size * 1024;
+constexpr unsigned max_trace = trace_page_size * 1024 * 2;
 
 char trace_log[max_trace] __attribute__((may_alias, aligned(sizeof(long))));
 std::atomic<size_t> trace_record_last;

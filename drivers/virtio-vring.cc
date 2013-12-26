@@ -24,6 +24,7 @@ using sched::thread;
 TRACEPOINT(trace_virtio_enable_interrupts, "vring=%p", void *);
 TRACEPOINT(trace_virtio_disable_interrupts, "vring=%p", void *);
 TRACEPOINT(trace_virtio_kick, "queue=%d", u16);
+TRACEPOINT(trace_virtio_queue, "queue=%d, avail=%d", u16, u16);
 
 namespace virtio {
 
@@ -88,8 +89,10 @@ namespace virtio {
 
     bool vring::use_indirect(int desc_needed)
     {
-        return false && // It degrades netperf performance
-                _dev->get_indirect_buf_cap() &&
+        return false;
+        //return false;
+        //return false && // It degrades netperf performance
+        return _dev->get_indirect_buf_cap() &&
                 desc_needed > 1 &&	// no need to use indirect for a single descriptor
                 _avail_count < _num / 4;  // use indirect only when low space
     }
@@ -165,6 +168,23 @@ namespace virtio {
 
             return true;
     }
+
+    void vring::add_buf_wait(void* cookie)
+    {
+        trace_virtio_queue(0, _avail_count);
+        while (!add_buf(cookie)) {
+        //while (!(trace_virtio_queue(0, _avail_count), add_buf(cookie))) {
+            _waiter.reset(*sched::thread::current());
+            while (!avail_ring_has_room(_sg_vec.size())) {
+                sched::thread::wait_until([this] {return this->used_ring_can_gc();});
+                get_buf_gc();
+                //trace_virtio_queue(0, _avail_count);
+            }
+            _waiter.clear();
+            //trace_virtio_queue(0, _avail_count);
+        }
+    }
+
 
     void
     vring::get_buf_gc()
@@ -282,6 +302,26 @@ namespace virtio {
             _avail_added_since_kick = 0;
         }
         return kicked;
+    }
+    bool vring::prepare_kick() {
+        bool kicked = true;
+
+        if (_dev->get_event_idx_cap()) {
+
+            kicked = ((u16)(_avail->_idx.load(std::memory_order_relaxed) - _avail_event->load(std::memory_order_relaxed) - 1) < _avail_added_since_kick);
+
+        } else if (_used->notifications_disabled())
+            return false;
+
+        if (kicked) {
+            _avail_added_since_kick = 0;
+        }
+        return kicked;
+    }
+
+    void vring::do_kick()
+    {
+        _dev->kick(_q_index);
     }
 
 };

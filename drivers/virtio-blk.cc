@@ -45,6 +45,8 @@ TRACEPOINT(trace_virtio_blk_strategy, "bio=%p", struct bio*);
 TRACEPOINT(trace_virtio_blk_req_ok, "bio=%p, sector=%lu, len=%lu, type=%x", struct bio*, u64, size_t, u32);
 TRACEPOINT(trace_virtio_blk_req_unsupp, "bio=%p, sector=%lu, len=%lu, type=%x", struct bio*, u64, size_t, u32);
 TRACEPOINT(trace_virtio_blk_req_err, "bio=%p, sector=%lu, len=%lu, type=%x", struct bio*, u64, size_t, u32);
+TRACEPOINT(trace_virtio_blk_req_done_time, "time=%lu", u64);
+TRACEPOINT(trace_virtio_blk_add_buf_wait_time, "time=%lu", u64);
 
 using namespace memory;
 
@@ -116,6 +118,7 @@ blk::blk(pci::device& pci_dev)
     t->start();
     auto queue = get_virt_queue(0);
     _msi.easy_register({ { 0, [=] { queue->disable_interrupts(); }, t } });
+    //_msi.easy_register({ { 0, nullptr, t } });
 
     add_dev_status(VIRTIO_CONFIG_S_DRIVER_OK);
 
@@ -179,27 +182,38 @@ void blk::req_done()
         trace_virtio_blk_wake();
 
         u32 len;
+        auto beg = nanotime();
+        int cnt = 0;
         while((req = static_cast<blk_req*>(queue->get_buf_elem(&len))) != nullptr) {
+            cnt++;
             if (req->bio) {
                 switch (req->res.status) {
                 case VIRTIO_BLK_S_OK:
-                    biodone(req->bio, true);
                     trace_virtio_blk_req_ok(req->bio, req->hdr.sector, req->bio->bio_bcount, req->hdr.type);
+                    biodone(req->bio, true);
                     break;
                 case VIRTIO_BLK_S_UNSUPP:
-                    biodone(req->bio, false);
                     trace_virtio_blk_req_unsupp(req->bio, req->hdr.sector, req->bio->bio_bcount, req->hdr.type);
+                    biodone(req->bio, false);
                     break;
                 default:
-                    biodone(req->bio, false);
                     trace_virtio_blk_req_err(req->bio, req->hdr.sector, req->bio->bio_bcount, req->hdr.type);
+                    biodone(req->bio, false);
                     break;
                }
             }
 
             delete req;
             queue->get_buf_finalize();
+
+            if (cnt >= 3) {
+                //queue->wakeup_waiter();
+                cnt = 0;
+            }
         }
+
+        auto end = nanotime();
+        trace_virtio_blk_req_done_time(end - beg);
 
         // wake up the requesting thread in case the ring was full before
         queue->wakeup_waiter();
@@ -215,6 +229,8 @@ static const int sector_size = 512;
 
 int blk::make_request(struct bio* bio)
 {
+    auto* queue = get_virt_queue(0);
+    bool kicked;
     // The lock is here for parallel requests protection
     WITH_LOCK(_lock) {
 
@@ -225,7 +241,6 @@ int blk::make_request(struct bio* bio)
             return EIO;
         }
 
-        auto* queue = get_virt_queue(0);
         blk_request_type type;
 
         switch (bio->bio_cmd) {
@@ -263,8 +278,10 @@ int blk::make_request(struct bio* bio)
         auto *base = bio->bio_data;
         while (len != bio->bio_bcount) {
             auto size = std::min(bio->bio_bcount - len, mmu::page_size);
-            if (offset + size > mmu::page_size)
+            if (offset + size > mmu::page_size) {
+                assert(0);
                 size = mmu::page_size - offset;
+            }
             len += size;
             if (type == VIRTIO_BLK_T_OUT)
                 queue->add_out_sg(base, size);
@@ -278,12 +295,18 @@ int blk::make_request(struct bio* bio)
         req->res.status = 0;
         queue->add_in_sg(&req->res, sizeof (struct blk_res));
 
+        auto beg = nanotime();
         queue->add_buf_wait(req);
+        auto end = nanotime();
+        trace_virtio_blk_add_buf_wait_time(end - beg);
 
-        queue->kick();
+        kicked = queue->prepare_kick();
+   }
 
-        return 0;
-    }
+    if (kicked)
+        queue->do_kick();
+
+    return 0;
 }
 
 u32 blk::get_driver_features(void)
