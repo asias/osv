@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
 {
     struct device *dev;
     if (argc < 2) {
-        printf("Usage: %s <dev-name>\n", argv[0]);
+        printf("Usage: %s <dev-name> [max-write-offset]\n", argv[0]);
         return 1;
     }
 
