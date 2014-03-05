@@ -28,7 +28,7 @@ static void bio_done(struct bio* bio)
 {
     auto err = bio->bio_flags & BIO_ERROR;
     bytes_written += bio->bio_bcount;
-    memory::free_page(bio->bio_data);
+    delete [] (char*) bio->bio_data;
     destroy_bio(bio);
     bio_inflights--;
     if (err) {
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
     printf("bdev-write test offset limit: %ld byte(s)\n", max_offset);
 
     const std::chrono::seconds test_duration(10);
-    const int buf_size = 4*KB;
+    const int buf_size = 64 * memory::page_size;
 
     long total = 0;
     long offset = 0;
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[])
         bio_inflights++;
         bio->bio_cmd = BIO_WRITE;
         bio->bio_dev = dev;
-        bio->bio_data = memory::alloc_page();
+        bio->bio_data = new char[buf_size];
         bio->bio_offset = offset;
         bio->bio_bcount = buf_size;
         bio->bio_caller1 = bio;
