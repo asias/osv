@@ -259,14 +259,20 @@ void osv_route_add_host(const char* destination,
     /* Create socket */
     struct socket* s;
     struct mbuf *m;
+    int err;
+
+    printf("%s: dest=%s,gw=%s\n", __func__, destination, gateway);
 
     m = osv_route_rtmsg(RTM_ADD, destination, gateway, NULL,
         (RTF_STATIC | RTF_UP | RTF_HOST) );
 
     /* Send routing message */
-    socreate(PF_ROUTE, &s, SOCK_RAW, 0, NULL, NULL);
-    sosend(s, 0, 0, m, 0, 0, NULL);
-    soclose(s);
+    err = socreate(PF_ROUTE, &s, SOCK_RAW, 0, NULL, NULL);
+    printf("host: socreate, err=%d\n", err);
+    err = sosend(s, 0, 0, m, 0, 0, NULL);
+    printf("host: sosend , err=%d\n", err);
+    err = soclose(s);
+    printf("host: soclose, err=%d\n", err);
 }
 
 void osv_route_add_network(const char* destination, const char* netmask,
@@ -275,14 +281,20 @@ void osv_route_add_network(const char* destination, const char* netmask,
     /* Create socket */
     struct socket* s;
     struct mbuf *m;
+    int err;
+
+    printf("%s: dest=%s,netmask=%s,gw=%s\n", __func__, destination, netmask, gateway);
 
     m = osv_route_rtmsg(RTM_ADD, destination, gateway, netmask,
         (RTF_STATIC | RTF_UP | RTF_GATEWAY ) );
 
     /* Send routing message */
-    socreate(PF_ROUTE, &s, SOCK_RAW, 0, NULL, NULL);
-    sosend(s, 0, 0, m, 0, 0, NULL);
-    soclose(s);
+    err = socreate(PF_ROUTE, &s, SOCK_RAW, 0, NULL, NULL);
+    printf("socreate, err=%d\n", err);
+    err = sosend(s, 0, 0, m, 0, 0, NULL);
+    printf("sosend, err=%d\n", err);
+    err = soclose(s);
+    printf("soclose, err=%d\n", err);
 }
 
 void osv_route_arp_add(const char* if_name, const char* ip,

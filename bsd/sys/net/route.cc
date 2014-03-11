@@ -806,8 +806,10 @@ rt_getifa_fib(struct rt_addrinfo *info, u_int fibnum)
 	if ((ifa = info->rti_ifa) != NULL) {
 		if (info->rti_ifp == NULL)
 			info->rti_ifp = ifa->ifa_ifp;
-	} else
+	} else {
 		error = ENETUNREACH;
+        printf(" rt_getifa_fib ENETUNREACH\n");
+    }
 	return (error);
 }
 
@@ -1119,6 +1121,7 @@ rtrequest1_fib(int req, struct rt_addrinfo *info, struct rtentry **ret_nrt,
 
 		if (info->rti_ifa == NULL) {
 			error = rt_getifa_fib(info, fibnum);
+            printf("%s: 66.1 err=%d\n", __func__, error);
 			if (error)
 				senderr(error);
 		} else

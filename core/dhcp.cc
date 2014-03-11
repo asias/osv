@@ -285,12 +285,17 @@ namespace dhcp {
                          ip::address_v4::bytes_type,
                          bytes);
                 _subnet_mask = ip::address_v4(bytes);
+                printf("--->_subnet_mask =%s\n", _subnet_mask.to_string().c_str());
+
+                _subnet_mask = ip::address_v4::from_string("255.255.0.0");
+                printf("--->_subnet_mask =%s\n", _subnet_mask.to_string().c_str());
                 break;
             case DHCP_OPTION_ROUTER:
                 PARSE_OP(ip::address_v4::bytes_type,
                          ip::address_v4::bytes_type,
                          bytes);
                 _router_ip = ip::address_v4(bytes);
+                printf("--->_router_ip  =%s\n", _router_ip.to_string().c_str());
                 break;
             case DHCP_OPTION_DHCP_SERVER:
                 PARSE_OP(ip::address_v4::bytes_type,
@@ -307,12 +312,14 @@ namespace dhcp {
             case DHCP_OPTION_INTERFACE_MTU:
                 PARSE_OP(u16, u16, _mtu);
                 _mtu = ntohs(_mtu);
+                printf("--->_mtu =%d\n", _mtu);
                 break;
             case DHCP_OPTION_BROADCAST_ADDRESS:
                 PARSE_OP(ip::address_v4::bytes_type,
                          ip::address_v4::bytes_type,
                          bytes);
                 _broadcast_ip = ip::address_v4(bytes);
+                printf("--->_broadcast_ip  =%s\n", _broadcast_ip.to_string().c_str());
                 break;
             case DHCP_OPTION_LEASE_TIME:
                 PARSE_OP(u32, u32, _lease_time_sec);
@@ -527,10 +534,43 @@ namespace dhcp {
             osv::start_if(_ifp->if_xname,
                           dm.get_your_ip().to_string().c_str(),
                           dm.get_subnet_mask().to_string().c_str());
+            osv::ifup(_ifp->if_xname);
 
-            osv_route_add_network("0.0.0.0",
-                                  "0.0.0.0",
-                                  dm.get_router_ip().to_string().c_str());
+            /* osv_route_add_network("0.0.0.0", */
+            /*                       "0.0.0.0", */
+            /*                       dm.get_router_ip().to_string().c_str()); */
+            /* // */
+            // If netmask is 255.255.255.255 then we should configure a host
+            // route rule to the GW in addition to the subnet.
+            //
+#if 1
+            if (dm.get_subnet_mask().to_ulong() == 0xffffffff) {
+                printf("AAAAAAAAAAA mask == 255.255.255.255\n");
+                /* osv_route_add_host(dm.get_router_ip().to_string().c_str(), */
+                /*                    "0.0.0.0"); */
+                // Kernel IP routing table
+                // Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+                // 0.0.0.0         10.0.0.1        0.0.0.0         UG    0      0        0 eth0
+                // 10.0.0.1        0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+                osv_route_add_network(dm.get_router_ip().to_string().c_str(),
+                                   "255.255.255.255",
+                                   "0.0.0.0");
+                osv_route_add_network("0.0.0.0",
+                                      "0.0.0.0",
+                                      dm.get_router_ip().to_string().c_str());
+            } else {
+                printf("BBBBBBBBBBB mask != 255.255.255.255\n");
+                osv_route_add_network("0.0.0.0",
+                                      "0.0.0.0",
+                                      dm.get_router_ip().to_string().c_str());
+                osv_route_add_network("10.240.220.0",
+                                      "255.255.255.0",
+                                      dm.get_router_ip().to_string().c_str());
+                osv_route_add_network("10.240.197.0",
+                                      "255.255.255.0",
+                                      dm.get_router_ip().to_string().c_str());
+            }
+#endif
             osv::set_dns_config(dm.get_dns_ips(), std::vector<std::string>());
             // TODO: setup lease
         } else if (dm.get_message_type() == DHCP_MT_NAK) {

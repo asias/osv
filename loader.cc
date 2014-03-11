@@ -176,6 +176,9 @@ std::tuple<int, char**> parse_options(int ac, char** av)
     if (vars.count("verbose")) {
         opt_verbose = true;
         enable_verbose();
+    } else {
+        opt_verbose = true;
+        enable_verbose();
     }
 
     if (vars.count("bootchart")) {

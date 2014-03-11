@@ -5,3 +5,5 @@
 /zfs.so: zfs.so
 /tools/mkfs.so: tools/mkfs/mkfs.so
 /tools/cpiod.so: tools/cpiod/cpiod.so
+/ifconfig.so: tools/ifconfig/ifconfig.so
+/lsroute.so: tools/route/lsroute.so
