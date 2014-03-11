@@ -29,4 +29,4 @@
 [submodule "apps"]
 	path = apps
 	url = ../../cloudius-systems/osv-apps
-	ignore = dirty
+	ignore = all
