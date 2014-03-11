@@ -255,6 +255,7 @@ net::net(pci::device& dev)
     poll_task->start();
 
     ether_ifattach(_ifn, _config.mac);
+    printf("-------> %s, irq=%d, msi=%d, msix=%d\n", __func__, dev.get_interrupt_line(), dev.is_msi(), dev.is_msix());
     if (dev.is_msix()) {
         _msi.easy_register({
             { 0, [&] { _rxq.vqueue->disable_interrupts(); }, poll_task },

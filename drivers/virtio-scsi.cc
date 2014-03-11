@@ -157,6 +157,7 @@ scsi::scsi(pci::device& dev)
     t->start();
     auto queue = get_virt_queue(VIRTIO_SCSI_QUEUE_REQ);
 
+    printf("-------> %s, irq=%d, msi=%d, msix=%d\n", __func__, dev.get_interrupt_line(), dev.is_msi(), dev.is_msix());
     if (dev.is_msix()) {
         _msi.easy_register({
                 { VIRTIO_SCSI_QUEUE_CTRL, nullptr, nullptr },
