@@ -526,6 +526,7 @@ int pthread_equal(pthread_t t1, pthread_t t2)
 int pthread_mutexattr_init(pthread_mutexattr_t *attr)
 {
     WARN_STUBBED();
+    return 0;
     return ENOMEM;
 }
 
@@ -592,6 +593,7 @@ int pthread_condattr_getclock(const pthread_condattr_t *__restrict attr,
 int pthread_condattr_setpshared(pthread_condattr_t *, int)
 {
     WARN_STUBBED();
+    return 0;
     return EINVAL;
 }
 
@@ -647,5 +649,51 @@ int pthread_setname_np(pthread_t p, const char* name)
         return ERANGE;
     }
     pthread::from_libc(p)->_thread.set_name(name);
+    return 0;
+}
+
+int pthread_mutexattr_setpshared(pthread_mutexattr_t *attr, int pshared)
+{
+    return 0;
+}
+
+int pthread_rwlockattr_destroy(pthread_rwlockattr_t *attr)
+{
+    return 0;
+}
+
+int pthread_rwlockattr_init(pthread_rwlockattr_t *attr)
+{
+    return 0;
+}
+
+int pthread_rwlockattr_getpshared(const pthread_rwlockattr_t * __restrict attr, int * __restrict pshared)
+{
+    return 0;
+}
+
+int pthread_rwlockattr_setpshared(pthread_rwlockattr_t *attr, int pshared)
+{
+    return 0;
+}
+
+int pthread_rwlock_init(pthread_rwlock_t *__restrict, const pthread_rwlockattr_t *__restrict)
+{
+    return 0;
+}
+
+int pthread_rwlock_unlock(pthread_rwlock_t *)
+{
+    return 0;
+}
+
+int pthread_attr_getscope(const pthread_attr_t *__restrict, int *__restrict)
+{
+    return 0;
+}
+
+int pthread_attr_setscope(pthread_attr_t *, int)
+{
+
     return 0;
 }
