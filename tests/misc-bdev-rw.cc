@@ -93,7 +93,7 @@ int main(int argc, char const *argv[])
     long written = 0;
 
     //Do all writes
-    for(auto i = 1; i < 32; i++)
+    for(auto i = 1; i < 128; i++)
     {
         const size_t buff_size = i * memory::page_size;
 
