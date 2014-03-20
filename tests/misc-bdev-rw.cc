@@ -88,6 +88,8 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
+    while (1) {
+
     long written = 0;
 
     //Do all writes
@@ -143,5 +145,8 @@ int main(int argc, char const *argv[])
          << "Processed " << written / MB << " MB" << endl
          << "Test " << (test_failed.load() ? "FAILED" : "PASSED") << endl;
 
+    if (test_failed.load())
+        abort();
+    }
     return test_failed.load() ? 1 : 0;
 }
