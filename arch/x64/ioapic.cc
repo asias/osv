@@ -50,6 +50,15 @@ void init()
 
 using namespace ioapic;
 
+void gsi_interrupt::set_level(unsigned gsi, unsigned vector)
+{
+    WITH_LOCK(mtx) {
+        write(0x10 + gsi * 2 + 1, sched::cpus[0]->arch.apic_id << 24);
+        write(0x10 + gsi * 2, vector | 1U << 15);
+    }
+    _gsi = gsi;
+}
+
 void gsi_interrupt::set(unsigned gsi, unsigned vector)
 {
     WITH_LOCK(mtx) {
@@ -84,7 +93,7 @@ gsi_level_interrupt::gsi_level_interrupt(unsigned gsi,
                                          std::function<void ()> handler)
     : _vector(idt.register_level_triggered_handler(gsi, ack, handler))
 {
-    _gsi.set(gsi, _vector.get().vector);
+    _gsi.set_level(gsi, _vector.get().vector);
 }
 
 void gsi_level_interrupt::set_ack_and_handler(unsigned gsi,
@@ -92,7 +101,7 @@ void gsi_level_interrupt::set_ack_and_handler(unsigned gsi,
         std::function<void ()> handler)
 {
     _vector = idt.register_level_triggered_handler(gsi, ack, handler);
-    _gsi.set(gsi, _vector.get().vector);
+    _gsi.set_level(gsi, _vector.get().vector);
 }
 
 gsi_level_interrupt::~gsi_level_interrupt()

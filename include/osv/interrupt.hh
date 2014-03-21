@@ -104,6 +104,7 @@ private:
 class gsi_interrupt {
 public:
     void set(unsigned gsi, unsigned vector);
+    void set_level(unsigned gsi, unsigned vector);
     void clear();
 private:
     unsigned _gsi;
