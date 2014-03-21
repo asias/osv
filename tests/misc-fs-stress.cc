@@ -35,12 +35,12 @@ static void print_distribution(std::vector<float> samples)
 
 int main(int argc, char const *argv[])
 {
-    const int buf_size = 1024;
+    const int buf_size = 4096;
     char *buf = new char[buf_size];
     const char * fname;
     char default_fname[64] = "/tmpfileXXXXXX";
 
-    const std::chrono::seconds test_duration(10);
+    const std::chrono::seconds test_duration(30);
 
     if (argc > 2) {
         printf("Usage: %s <file-name>\n", argv[0]);
