@@ -99,19 +99,19 @@ void port::setup()
     // Setup Command List and Received FIS Structure
     auto sz = sizeof(*_cmd_list) * 32;
     _cmd_list = reinterpret_cast<struct cmd_list *>(
-                memory::alloc_phys_contiguous_aligned(sz, 1024));
+                memory::alloc_phys_contiguous_aligned(sz, memory::page_size));
     _cmd_list_pa = mmu::virt_to_phys(_cmd_list);
     memset(_cmd_list, 0, sz);
 
     sz = sizeof(*_cmd_table) * 32;
     _cmd_table = reinterpret_cast<struct cmd_table *>(
-                 memory::alloc_phys_contiguous_aligned(sz, 1024));
+                 memory::alloc_phys_contiguous_aligned(sz, memory::page_size));
     _cmd_table_pa = mmu::virt_to_phys(_cmd_table);
     memset(_cmd_table, 0, sz);
 
     sz = sizeof(*_recv_fis) * 1;
     _recv_fis = reinterpret_cast<struct recv_fis *>(
-                memory::alloc_phys_contiguous_aligned(sz, 1024));
+                memory::alloc_phys_contiguous_aligned(sz, memory::page_size));
     _recv_fis_pa = mmu::virt_to_phys(_recv_fis);
     memset(_recv_fis, 0, sz);
 
