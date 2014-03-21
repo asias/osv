@@ -18,12 +18,15 @@ vector<struct bio *> done_wbio;
 
 static void fill_buffer(void *buff, size_t len)
 {
+#if 0
     auto data_array = static_cast<size_t *>(buff);
 
     for (size_t i = 0; i < len / sizeof(size_t); i++)
     {
         data_array[i] = reinterpret_cast<size_t>(&data_array[i]);
     }
+#endif
+    memset(buff, 0x55, len);
 }
 
 static void rbio_done(struct bio* rbio)
@@ -37,7 +40,7 @@ static void rbio_done(struct bio* rbio)
              << endl;
         test_failed = true;
     } else {
-        if (memcmp(rbio->bio_data, wbio->bio_data, rbio->bio_bcount)) {
+        if (memcmp(rbio->bio_data, wbio->bio_data, rbio->bio_bcount - 20 )) {
             cout << endl
                 << "data mismatch for " << rbio->bio_bcount << " bytes buffer"
                 << endl;
