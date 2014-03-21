@@ -158,6 +158,7 @@ struct cmd_table {
     u8 atapi_cmd[0x10];
     u8 reserved[0x30];
     struct prdt prdt[1]; // TODO: support more descriptors
+    u8 pad[256 - 144];  // cmd_table need to be align on 128 bits
 } __attribute__((packed));
 
 // Command List Structure

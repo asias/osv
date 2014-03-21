@@ -104,6 +104,7 @@ void port::setup()
     memset(_cmd_list, 0, sz);
 
     sz = sizeof(*_cmd_table) * 32;
+    printf("sz=%d\n", sz);
     _cmd_table = reinterpret_cast<struct cmd_table *>(
                  memory::alloc_phys_contiguous_aligned(sz, memory::page_size));
     _cmd_table_pa = mmu::virt_to_phys(_cmd_table);
@@ -148,7 +149,7 @@ void port::setup()
     port_writel(PORT_SERR, err);
 
     // Wait for Device Becoming Ready
-    wait_device_ready();
+    //wait_device_ready();
 
     // Start Device
     cmd |= PORT_CMD_ST;
@@ -197,12 +198,14 @@ int port::send_cmd(u8 slot, int iswrite, void *buffer, u32 bsize)
     // Setup Command List
     flags = ((buffer ? (1U << 16) : 0) | // One PRD Entry
              (5U << 0)) |                //FIS Length 5 DWORDS, 20 Bytes
+             (1U << 10) |                //Clear Busy upon R_OK 
              (iswrite ? (1U << 6) : 0);
     mmu::phys base = mmu::virt_to_phys(&_cmd_table[slot]);
     _cmd_list[slot].flags = flags;
     _cmd_list[slot].bytes = 0;
     _cmd_list[slot].base = base & 0xFFFFFFFF;
     _cmd_list[slot].baseu = base >> 32;
+    assert((base & 0x7f) == 0);
 
     if (buffer) {
         // Setup Command Table
@@ -210,8 +213,11 @@ int port::send_cmd(u8 slot, int iswrite, void *buffer, u32 bsize)
         _cmd_table[slot].prdt[0].base = buf & 0xFFFFFFFF;
         _cmd_table[slot].prdt[0].baseu = buf >> 32;
         _cmd_table[slot].prdt[0].flags = bsize - 1;
+        assert((buf & 0x01) == 0);
+        assert(bsize % 2 == 0);
     }
 
+    //wait_device_ready();
     _cmd_active |= 1U << slot;
     port_writel(PORT_CI, 1U << slot);
 
@@ -450,11 +456,15 @@ void hba::enable_irq()
     ghc |= HOST_GHC_IE;
     hba_writel(HOST_GHC, ghc);
 
+#if 0
     if (_pci_dev.is_msix() || _pci_dev.is_msi() ) {
+        abort("msi");
         _msi.easy_register({ { 0, [=] { ack_irq(); }, nullptr} });
     } else {
         _gsi.set_ack_and_handler(_pci_dev.get_interrupt_line(), [=] { return ack_irq(); }, [] {});
     }
+#endif
+    _gsi.set_ack_and_handler(_pci_dev.get_interrupt_line(), [=] { return ack_irq(); }, [] {});
 }
 
 hba::hba(pci::device& pci_dev)
