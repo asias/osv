@@ -42,6 +42,17 @@ static void rbio_done(struct bio* rbio)
                 << "data mismatch for " << rbio->bio_bcount << " bytes buffer"
                 << endl;
             test_failed = true;
+            auto w = static_cast<char *>(wbio->bio_data);
+            auto r = static_cast<char *>(rbio->bio_data);
+            unsigned i;
+            unsigned nr = 0;
+            for (i = 0 ; i < rbio->bio_bcount; i++) {
+                if (w[i] != r[i]) {
+                    printf("i=%d, w[]=%x, i[]=%x, totoal=%d\n", i, w[i], r[i], ++nr);
+                    break;
+                }
+            }
+            abort();
         } else {
             cout << ".";
         }
@@ -133,6 +144,8 @@ int main(int argc, char const *argv[])
         rbio->bio_bcount = wbio->bio_bcount;
         rbio->bio_caller1 = wbio;
         rbio->bio_done = rbio_done;
+
+        memset(rbio->bio_data, 0x33, rbio->bio_bcount);
 
         rbio->bio_dev->driver->devops->strategy(rbio);
     }
