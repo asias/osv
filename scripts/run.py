@@ -100,7 +100,9 @@ def start_osv_qemu(options):
         args += [
         "-machine", "q35",
         "-drive", "file=%s,if=none,id=hd0,media=disk,aio=native,cache=%s" % (options.image_file, cache),
-        "-device", "ide-hd,drive=hd0,id=idehd0,bus=ide.0"]
+        "-device", "ide-hd,drive=hd0,id=idehd0,bus=ide.0",
+        "-drive", "file=%s,if=none,id=hd1,media=disk,aio=native,cache=%s" % ("/ssd/test.raw", cache),
+        "-device", "ide-hd,drive=hd1,id=idehd1,bus=ide.1"]
     elif (options.scsi):
         args += [
         "-device", "virtio-scsi-pci,id=scsi0",
