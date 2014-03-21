@@ -173,10 +173,10 @@ std::tuple<int, char**> parse_options(int ac, char** av)
         opt_log_backtrace = true;
     }
 
-    if (vars.count("verbose")) {
+    //if (vars.count("verbose")) {
         opt_verbose = true;
         enable_verbose();
-    }
+    //}
 
     if (vars.count("bootchart")) {
         opt_bootchart = true;
