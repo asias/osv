@@ -149,7 +149,7 @@ void port::setup()
     port_writel(PORT_SERR, err);
 
     // Wait for Device Becoming Ready
-    //wait_device_ready();
+    wait_device_ready();
 
     // Start Device
     cmd |= PORT_CMD_ST;
@@ -217,7 +217,7 @@ int port::send_cmd(u8 slot, int iswrite, void *buffer, u32 bsize)
         assert(bsize % 2 == 0);
     }
 
-    //wait_device_ready();
+    wait_device_ready();
     _cmd_active |= 1U << slot;
     port_writel(PORT_CI, 1U << slot);
 
