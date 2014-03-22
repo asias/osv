@@ -218,7 +218,7 @@ int port::send_cmd(u8 slot, int iswrite, void *buffer, u32 bsize)
     }
 
     WITH_LOCK(_cmd_lock) {
-    wait_device_ready();
+    //wait_device_ready();
     _cmd_active |= 1U << slot;
     port_writel(PORT_CI, 1U << slot);
     }
