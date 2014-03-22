@@ -217,9 +217,11 @@ int port::send_cmd(u8 slot, int iswrite, void *buffer, u32 bsize)
         assert(bsize % 2 == 0);
     }
 
+    WITH_LOCK(_cmd_lock) {
     wait_device_ready();
     _cmd_active |= 1U << slot;
     port_writel(PORT_CI, 1U << slot);
+    }
 
     return 0;
 }
@@ -271,7 +273,9 @@ void port::req_done()
     while (1) {
         u32 mask;
 
-        sched::thread::wait_until([&] { mask = this->done_mask(); return mask != 0x0; });
+        WITH_LOCK(_cmd_lock) {
+            sched::thread::wait_until(_cmd_lock, [&] { mask = this->done_mask(); return mask != 0x0; });
+        }
 
         while (mask) {
             u8 slot = ffs(mask) - 1;

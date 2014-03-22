@@ -296,6 +296,7 @@ private:
     u8 _queue_depth;
     size_t _devsize;
     mutex _lock;
+    mutex _cmd_lock;
     u32 _pnr;
     hba *_hba;
 
