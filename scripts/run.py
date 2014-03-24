@@ -98,7 +98,7 @@ def start_osv_qemu(options):
 
     if (options.sata):
         args += [
-        "-machine", "q35",
+	"-device", "ahci,id=ide,bus=pci.0",
         "-drive", "file=%s,if=none,id=hd0,media=disk,aio=native,cache=%s" % (options.image_file, cache),
         "-device", "ide-hd,drive=hd0,id=idehd0,bus=ide.0",
         "-drive", "file=%s,if=none,id=hd1,media=disk,aio=native,cache=%s" % ("/ssd/test.raw", cache),
@@ -173,8 +173,8 @@ def start_osv_qemu(options):
         qemu_env = os.environ.copy()
 
         qemu_env['OSV_BRIDGE'] = options.bridge
-        cmdline = ["qemu-system-x86_64"] + args
-        #cmdline = ["/opt/qemu/bin/qemu-system-x86_64"] + args
+        #cmdline = ["qemu-system-x86_64"] + args
+        cmdline = ["/opt/qemu/bin/qemu-system-x86_64"] + args
         if options.dry_run:
             print(format_args(cmdline))
         else:
