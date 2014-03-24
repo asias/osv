@@ -102,6 +102,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
+    unsigned long nr = 0;
     while (1) {
 
     long written = 0;
@@ -158,6 +159,7 @@ int main(int argc, char const *argv[])
     }
 
     cout << endl
+         << "Round " << ++nr
          << "Processed " << written / MB << " MB" << endl
          << "Test " << (test_failed.load() ? "FAILED" : "PASSED") << endl;
 
