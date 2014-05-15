@@ -361,7 +361,7 @@ zprop_valid_for_type(int prop, zfs_type_t type)
 	return ((prop_tbl[prop].pd_types & type) != 0);
 }
 
-#ifndef _KERNEL
+//#ifndef _KERNEL
 
 /*
  * Determines the minimum width for the column, and indicates whether it's fixed
@@ -423,4 +423,4 @@ zprop_width(int prop, boolean_t *fixed, zfs_type_t type)
 	return (ret);
 }
 
-#endif
+//#endif

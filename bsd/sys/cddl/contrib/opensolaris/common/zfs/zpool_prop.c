@@ -208,7 +208,7 @@ zpool_prop_random_value(zpool_prop_t prop, uint64_t seed)
 	return (zprop_random_value(prop, seed, ZFS_TYPE_POOL));
 }
 
-#ifndef _KERNEL
+//#ifndef _KERNEL
 
 const char *
 zpool_prop_values(zpool_prop_t prop)
@@ -227,4 +227,4 @@ zpool_prop_align_right(zpool_prop_t prop)
 {
 	return (zpool_prop_table[prop].pd_rightalign);
 }
-#endif
+//#endif
