@@ -573,7 +573,7 @@ zfs_prop_inheritable(zfs_prop_t prop)
 	    zfs_prop_table[prop].pd_attr == PROP_ONETIME);
 }
 
-#ifndef _KERNEL
+//#ifndef _KERNEL
 
 /*
  * Returns a string describing the set of acceptable values for the given
@@ -617,4 +617,4 @@ zfs_prop_align_right(zfs_prop_t prop)
 	return (zfs_prop_table[prop].pd_rightalign);
 }
 
-#endif
+//#endif
