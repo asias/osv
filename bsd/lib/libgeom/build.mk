@@ -4,6 +4,8 @@ libgeom-objects = $(foreach file, $(libgeom-file-list), bsd/lib/libgeom/$(file).
 define libgeom-includes
   bsd/lib/libgeom
   bsd/include
+  bsd
+  bsd/sys
 endef
 
 cflags-libgeom-include = $(foreach path, $(strip $(libgeom-includes)), -isystem $(src)/$(path))
