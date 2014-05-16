@@ -15,6 +15,10 @@ extern "C" {
 
 #include <bits/alltypes.h>
 
+struct __DIR_s {
+    int fd;
+};
+
 typedef struct __DIR_s DIR;
 
 struct dirent

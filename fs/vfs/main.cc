@@ -526,10 +526,6 @@ TRACEPOINT(trace_vfs_readdir, "%d %p", int, dirent*);
 TRACEPOINT(trace_vfs_readdir_ret, "");
 TRACEPOINT(trace_vfs_readdir_err, "%d", int);
 
-struct __DIR_s {
-    int fd;
-};
-
 DIR *opendir(const char *path)
 {
     DIR *dir = new DIR;
