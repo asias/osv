@@ -386,6 +386,7 @@ include $(src)/bsd/cddl/contrib/opensolaris/lib/libuutil/common/build.mk
 include $(src)/bsd/cddl/contrib/opensolaris/lib/libzfs/common/build.mk
 include $(src)/bsd/cddl/contrib/opensolaris/cmd/zpool/build.mk
 include $(src)/bsd/cddl/contrib/opensolaris/cmd/zfs/build.mk
+include $(src)/bsd/lib/libgeom/build.mk
 
 bsd  = bsd/net.o  
 bsd += bsd/$(arch)/machine/in_cksum.o
@@ -854,7 +855,7 @@ bootfs.bin:
 else
 bootfs.bin: scripts/mkbootfs.py $(java-targets) $(out)/bootfs.manifest $(tests) $(java_tests) $(tools) \
 		tests/testrunner.so \
-		zpool.so zfs.so
+		zpool.so zfs.so libgeom.so
 	$(call quiet, $(src)/scripts/mkbootfs.py -o $@ -d $@.d -m $(out)/bootfs.manifest \
 		-D jdkbase=$(jdkbase) -D gccbase=$(gccbase) -D \
 		glibcbase=$(glibcbase) -D miscbase=$(miscbase), MKBOOTFS $@)
