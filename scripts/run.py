@@ -115,7 +115,10 @@ def start_osv_qemu(options):
     else:
         args += [
         "-device", "virtio-blk-pci,id=blk0,bootindex=0,drive=hd0,scsi=off",
-        "-drive", "file=%s,if=none,id=hd0,aio=native,cache=%s" % (options.image_file, cache)]
+        "-drive", "file=%s,if=none,id=hd0,aio=native,cache=%s" % (options.image_file, cache),
+	"-drive", "file=/data/asias/disk1.qcow2,if=virtio",
+	"-drive", "file=/data/asias/disk2.qcow2,if=virtio"
+	]
 
     if (options.no_shutdown):
         args += ["-no-reboot", "-no-shutdown"]
