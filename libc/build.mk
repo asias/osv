@@ -650,3 +650,5 @@ libc += eventfd.o
 libc += timerfd.o
 libc += shm.o
 libc += inotify.o
+
+libc += sched/sched_cpucount.o

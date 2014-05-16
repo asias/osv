@@ -720,3 +720,28 @@ int pthread_setname_np(pthread_t p, const char* name)
     pthread::from_libc(p)->_thread.set_name(name);
     return 0;
 }
+
+int pthread_setaffinity_np(pthread_t td, size_t size, const cpu_set_t *set)
+{
+    WARN_STUBBED();
+    return EINVAL;
+}
+
+int pthread_getaffinity_np(pthread_t td, size_t size, cpu_set_t *set)
+{
+    WARN_STUBBED();
+    return EINVAL;
+}
+
+int pthread_attr_setaffinity_np(pthread_attr_t *attr, size_t cpusetsize, const cpu_set_t *cpuset)
+{
+
+    WARN_STUBBED();
+    return EINVAL;
+}
+
+int pthread_attr_getaffinity_np(pthread_attr_t *attr, size_t cpusetsize, cpu_set_t *cpuset)
+{
+    WARN_STUBBED();
+    return EINVAL;
+}

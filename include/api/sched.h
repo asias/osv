@@ -10,6 +10,10 @@ extern "C" {
 #define __NEED_pid_t
 #define __NEED_time_t
 
+#ifdef _GNU_SOURCE
+#define __NEED_size_t
+#endif
+
 #include <bits/alltypes.h>
 
 struct sched_param {
@@ -64,6 +68,9 @@ int clone (int (*)(void *), void *, int, void *, ...);
 int unshare(int);
 int setns(int, int);
 #endif
+
+typedef struct cpu_set_t { unsigned long __bits[128/sizeof(long)]; } cpu_set_t;
+int __sched_cpucount(size_t, const cpu_set_t *);
 
 #ifdef __cplusplus
 }
