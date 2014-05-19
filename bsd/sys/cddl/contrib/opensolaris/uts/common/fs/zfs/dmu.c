@@ -1611,7 +1611,7 @@ dmu_object_set_compress(objset_t *os, uint64_t object, uint8_t compress,
 	dnode_rele(dn, FTAG);
 }
 
-int zfs_mdcomp_disable = 0;
+int zfs_mdcomp_disable = 1;
 TUNABLE_INT("vfs.zfs.mdcomp_disable", &zfs_mdcomp_disable);
 SYSCTL_INT(_vfs_zfs, OID_AUTO, mdcomp_disable, CTLFLAG_RW,
     &zfs_mdcomp_disable, 0, "Disable metadata compression");
