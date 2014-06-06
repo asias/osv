@@ -104,6 +104,31 @@ void test_memset(size_t size)
     free(buf);
 }
 
+void test_memcmp(size_t size)
+{
+    void *buf1= malloc(size);
+    void *buf2= malloc(size);
+    int r, i;
+
+    memset(buf1, 0x55, size);
+    memset(buf2, 0x55, size);
+
+    for (r = 0; r < RUNS; ++r) {
+        unsigned long t1 = gtime();
+        for (i= 0; i < LOOPS; ++i) {
+            memcmp(buf1, buf2, size);
+        }
+        unsigned long t2 = gtime();
+
+        vector[r] = (float)(t2-t1) / LOOPS;
+    }
+
+    statistics("memcmp", size);
+
+    free(buf1);
+    free(buf2);
+}
+
 int main()
 {
     size_t i;
@@ -112,6 +137,7 @@ int main()
             4096, 8192, 16386, 32768
     };
     size_t nsizes = sizeof(sizes) / sizeof(*sizes);
+
     for (i = 0; i < nsizes; ++i) {
         test_memcpy(sizes[i]);
     }
@@ -120,6 +146,9 @@ int main()
         test_memset(sizes[i]);
     }
 
+    for (i = 0; i < nsizes; ++i) {
+        test_memcmp(sizes[i]);
+    }
 
     return 0;
 }
