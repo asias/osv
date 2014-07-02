@@ -58,7 +58,12 @@ void virtio_driver::setup_features()
     u32 dev_features = get_device_features();
     u32 drv_features = this->get_driver_features();
 
+
     u32 subset = dev_features & drv_features;
+
+    printf("dev_features=%x\n", dev_features);
+    printf("drv_features=%x\n", drv_features);
+    printf("subset      =%x\n", subset);
 
     //notify the host about the features in used according
     //to the virtio spec

@@ -317,7 +317,7 @@ void net::read_config()
     virtio_conf_read(virtio_pci_config_offset(), &_config, sizeof(_config));
 
     if (get_guest_feature_bit(VIRTIO_NET_F_MAC))
-        net_i("The mac addr of the device is %x:%x:%x:%x:%x:%x",
+        printf("The mac addr of the device is %x:%x:%x:%x:%x:%x\n",
                 (u32)_config.mac[0],
                 (u32)_config.mac[1],
                 (u32)_config.mac[2],
@@ -335,10 +335,10 @@ void net::read_config()
     _host_tso4 = get_guest_feature_bit(VIRTIO_NET_F_HOST_TSO4);
     _guest_ufo = get_guest_feature_bit(VIRTIO_NET_F_GUEST_UFO);
 
-    net_i("Features: %s=%d,%s=%d", "Status", _status, "TSO_ECN", _tso_ecn);
-    net_i("Features: %s=%d,%s=%d", "Host TSO ECN", _host_tso_ecn, "CSUM", _csum);
-    net_i("Features: %s=%d,%s=%d", "Guest_csum", _guest_csum, "guest tso4", _guest_tso4);
-    net_i("Features: %s=%d", "host tso4", _host_tso4);
+    printf("Features: %s=%d,%s=%d\n", "Status", _status, "TSO_ECN", _tso_ecn);
+    printf("Features: %s=%d,%s=%d\n", "Host TSO ECN", _host_tso_ecn, "CSUM", _csum);
+    printf("Features: %s=%d,%s=%d\n", "Guest_csum", _guest_csum, "guest tso4", _guest_tso4);
+    printf("Features: %s=%d\n", "host tso4", _host_tso4);
 }
 
 /**
