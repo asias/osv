@@ -194,7 +194,7 @@ tcp_twstart(struct tcpcb *tp)
 	int isipv6 = inp->inp_inc.inc_flags & INC_ISIPV6;
 #endif
 
-    printf("tcp_twstart inp=%p\n", inp);
+    //printf("tcp_twstart inp=%p\n", inp);
 
 	INP_INFO_WLOCK_ASSERT(&V_tcbinfo);	/* tcp_tw_2msl_reset(). */
 	INP_LOCK_ASSERT(inp);
