@@ -11,6 +11,7 @@
 #include <bsd/porting/netport.h>
 #include <bsd/porting/uma_stub.h>
 #include <osv/preempt-lock.hh>
+#include <osv/debug.hh>
 
 void* uma_zone::cache::alloc()
 {
@@ -31,6 +32,12 @@ bool uma_zone::cache::free(void* obj)
 
 void * uma_zalloc_arg(uma_zone_t zone, void *udata, int flags)
 {
+
+    if (zone->uz_nitems_max != 0 && zone->uz_nitems >= zone->uz_nitems_max) {
+        debug("uz_nitems=%d,uz_nitems_max=%d\n", zone->uz_nitems.load(std::memory_order_relaxed), zone->uz_nitems_max);
+        return NULL;
+    }
+
     void * ptr;
 
     WITH_LOCK(preempt_lock) {
@@ -81,6 +88,8 @@ void * uma_zalloc_arg(uma_zone_t zone, void *udata, int flags)
         UMA_ITEM_HDR(zone, ptr)->refcnt = 1;
     }
 
+    zone->uz_nitems++;
+
     return (ptr);
 }
 
@@ -101,6 +110,7 @@ void uma_zfree_arg(uma_zone_t zone, void *item, void *udata)
 
     WITH_LOCK(preempt_lock) {
         if ((*zone->percpu_cache)->free(item)) {
+            zone->uz_nitems--;
             return;
         }
     }
@@ -108,6 +118,7 @@ void uma_zfree_arg(uma_zone_t zone, void *item, void *udata)
     if (zone->uz_fini) {
         zone->uz_fini(item, zone->uz_size);
     }
+
 
     auto effective_size = zone->uz_size;
     if (zone->uz_flags)
@@ -118,6 +129,8 @@ void uma_zfree_arg(uma_zone_t zone, void *item, void *udata)
     } else {
        free(item);
     }
+
+    zone->uz_nitems--;
 }
 
 void uma_zfree(uma_zone_t zone, void *item)
@@ -137,7 +150,8 @@ void zone_drain(uma_zone_t zone)
 
 int uma_zone_set_max(uma_zone_t zone, int nitems)
 {
-    return (nitems);
+    zone->uz_nitems_max = nitems;
+    return nitems;
 }
 
 uma_zone_t uma_zcreate(const char *name, size_t size, uma_ctor ctor,
