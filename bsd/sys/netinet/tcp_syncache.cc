@@ -90,7 +90,7 @@ SYSCTL_VNET_INT(_net_inet_tcp, OID_AUTO, syncookies, CTLFLAG_RW,
 	&VNET_NAME(tcp_syncookies), 0,
 	"Use TCP SYN cookies if the syncache overflows");
 
-static VNET_DEFINE(int, tcp_syncookiesonly) = 0;
+static VNET_DEFINE(int, tcp_syncookiesonly) = 1;
 #define	V_tcp_syncookiesonly		VNET(tcp_syncookiesonly)
 SYSCTL_VNET_INT(_net_inet_tcp, OID_AUTO, syncookies_only, CTLFLAG_RW,
 	&VNET_NAME(tcp_syncookiesonly), 0,
