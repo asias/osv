@@ -78,7 +78,7 @@ using namespace osv::clock::literals;
 /*
  * Time constants.
  */
-#define	TCPTV_MSL	( 30*hz)		/* max seg lifetime (hah!) */
+#define	TCPTV_MSL	( 5*hz)		/* max seg lifetime (hah!) */
 #define	TCPTV_SRTTBASE	0			/* base roundtrip time;
 						   if 0, no idea yet */
 #define	TCPTV_RTOBASE	(  3*hz)		/* assumed RTO if no info */
