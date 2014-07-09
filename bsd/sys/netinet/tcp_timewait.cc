@@ -109,6 +109,7 @@ tcptw_auto_size(void)
 	else
 		halfrange = (V_ipport_firstauto - V_ipport_lastauto) / 2;
 	/* Protect against goofy port ranges smaller than 32. */
+    printf("--->>> tcptw_auto_size=%d\n", imin(imax(halfrange, 32), maxsockets / 5));
 	return (imin(imax(halfrange, 32), maxsockets / 5));
 }
 #if 0
