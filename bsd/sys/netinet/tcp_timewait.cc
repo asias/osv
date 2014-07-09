@@ -81,7 +81,7 @@
 
 static VNET_DEFINE(uma_zone_t, tcptw_zone);
 #define	V_tcptw_zone			VNET(tcptw_zone)
-static int	maxtcptw;
+static int	maxtcptw = 512;
 
 /*
  * The timed wait queue contains references to each of the TCP sessions
@@ -161,6 +161,7 @@ tcp_tw_init(void)
 		uma_zone_set_max(V_tcptw_zone, tcptw_auto_size());
 	else
 		uma_zone_set_max(V_tcptw_zone, maxtcptw);
+    printf("tcp_tw_init:maxtcptw=%d\n", maxtcptw);
 	TAILQ_INIT(&V_twq_2msl);
 }
 
