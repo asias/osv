@@ -54,6 +54,8 @@ void * uma_zalloc_arg(uma_zone_t zone, void *udata, int flags)
             ptr = malloc(size);
         }
 
+        zone->uz_nitems++;
+
         bzero(ptr, zone->uz_size);
 
         // Call init
@@ -109,6 +111,8 @@ void uma_zfree_arg(uma_zone_t zone, void *item, void *udata)
         zone->uz_fini(item, zone->uz_size);
     }
 
+    zone->uz_nitems--;
+
     auto effective_size = zone->uz_size;
     if (zone->uz_flags)
         effective_size += UMA_ITEM_HDR_LEN;
@@ -137,7 +141,8 @@ void zone_drain(uma_zone_t zone)
 
 int uma_zone_set_max(uma_zone_t zone, int nitems)
 {
-    return (nitems);
+    zone->uz_nitems = nitems;
+    return nitems;
 }
 
 uma_zone_t uma_zcreate(const char *name, size_t size, uma_ctor ctor,
