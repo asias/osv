@@ -249,7 +249,6 @@ soalloc(struct vnet *vnet)
 	so->so_gencnt = ++so_gencnt;
 	++numopensockets;
 	mtx_unlock(&so_global_mtx);
-    printf("++numopensockets=%d\n", numopensockets);
 	return (so);
 }
 
