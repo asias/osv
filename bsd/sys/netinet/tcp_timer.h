@@ -78,7 +78,7 @@ using namespace osv::clock::literals;
 /*
  * Time constants.
  */
-#define	TCPTV_MSL	( 5*hz)		/* max seg lifetime (hah!) */
+#define	TCPTV_MSL	( 1*hz)		/* max seg lifetime (hah!) */
 #define	TCPTV_SRTTBASE	0			/* base roundtrip time;
 						   if 0, no idea yet */
 #define	TCPTV_RTOBASE	(  3*hz)		/* assumed RTO if no info */
@@ -92,7 +92,7 @@ using namespace osv::clock::literals;
 #define	TCPTV_KEEPINTVL	( 75*hz)		/* default probe interval */
 #define	TCPTV_KEEPCNT	8			/* max probes before drop */
 
-#define TCPTV_FINWAIT2_TIMEOUT (60*hz)         /* FIN_WAIT_2 timeout if no receiver */
+#define TCPTV_FINWAIT2_TIMEOUT (1*hz)         /* FIN_WAIT_2 timeout if no receiver */
 
 /*
  * Minimum retransmit timer is 3 bsd_ticks, for algorithmic stability.
