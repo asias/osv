@@ -81,7 +81,7 @@
 
 static VNET_DEFINE(uma_zone_t, tcptw_zone);
 #define	V_tcptw_zone			VNET(tcptw_zone)
-static int	maxtcptw = 512;
+static int	maxtcptw;
 
 /*
  * The timed wait queue contains references to each of the TCP sessions
