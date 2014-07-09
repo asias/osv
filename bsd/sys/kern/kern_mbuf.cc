@@ -99,6 +99,7 @@ tunable_mbinit(void *dummy)
 	TUNABLE_INT_FETCH("kern.ipc.nmbclusters", &nmbclusters);
 	if (nmbclusters == 0)
 		nmbclusters = 1024 + maxusers * 64;
+	nmbclusters = 65536;
 
 	TUNABLE_INT_FETCH("kern.ipc.nmbjumbop", &nmbjumbop);
 	if (nmbjumbop == 0)
