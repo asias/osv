@@ -31,6 +31,10 @@ bool uma_zone::cache::free(void* obj)
 
 void * uma_zalloc_arg(uma_zone_t zone, void *udata, int flags)
 {
+
+    if (zone->uz_nitems > zone->uz_nitems_max)
+        return NULL;
+
     void * ptr;
 
     WITH_LOCK(preempt_lock) {
@@ -141,7 +145,7 @@ void zone_drain(uma_zone_t zone)
 
 int uma_zone_set_max(uma_zone_t zone, int nitems)
 {
-    zone->uz_nitems = nitems;
+    zone->uz_nitems_max = nitems;
     return nitems;
 }
 
