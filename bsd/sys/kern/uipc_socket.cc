@@ -217,6 +217,7 @@ init_maxsockets(void *ignored)
 
 	TUNABLE_INT_FETCH("kern.ipc.maxsockets", &maxsockets);
 	maxsockets = 0x2000;
+	maxsockets = 819200;
 }
 SYSINIT(param, SI_SUB_TUNABLES, SI_ORDER_ANY, init_maxsockets, NULL);
 

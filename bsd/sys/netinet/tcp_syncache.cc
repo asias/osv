@@ -126,8 +126,8 @@ static struct syncache
 #define SYNCACHE_MAXREXMTS		3
 
 /* Arbitrary values */
-#define TCP_SYNCACHE_HASHSIZE		512
-#define TCP_SYNCACHE_BUCKETLIMIT	30
+#define TCP_SYNCACHE_HASHSIZE		1024
+#define TCP_SYNCACHE_BUCKETLIMIT	100
 
 static VNET_DEFINE(struct tcp_syncache, tcp_syncache);
 #define	V_tcp_syncache			VNET(tcp_syncache)
