@@ -184,6 +184,8 @@ struct uma_zone {
     /* zones can be nested (and called with multiple ctor?) */
     struct uma_zone* master;
 
+    std::atomic<u_int32_t> uz_nitems{0};
+    u_int32_t uz_nitems_max{4096};
 };
 
 #endif
