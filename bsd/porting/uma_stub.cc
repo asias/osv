@@ -11,6 +11,7 @@
 #include <bsd/porting/netport.h>
 #include <bsd/porting/uma_stub.h>
 #include <osv/preempt-lock.hh>
+#include <osv/debug.hh>
 
 void* uma_zone::cache::alloc()
 {
@@ -32,8 +33,10 @@ bool uma_zone::cache::free(void* obj)
 void * uma_zalloc_arg(uma_zone_t zone, void *udata, int flags)
 {
 
-    if (zone->uz_nitems > zone->uz_nitems_max)
+    if (zone->uz_nitems >> zone->uz_nitems_max) {
+        debug("uz_nitems=%d,uz_nitems_max=%d\n", zone->uz_nitems.load(std::memory_order_relaxed), zone->uz_nitems_max);
         return NULL;
+    }
 
     void * ptr;
 
