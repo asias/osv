@@ -217,7 +217,7 @@ static char *	tcp_log_addr(struct in_conninfo *inc, struct tcphdr *th,
  * variable net.inet.tcp.tcbhashsize
  */
 #ifndef TCBHASHSIZE
-#define TCBHASHSIZE	4096
+#define TCBHASHSIZE	16384
 #endif
 
 /*
