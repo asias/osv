@@ -1578,10 +1578,12 @@ tcp_ctloutput(struct socket *so, struct sockopt *sopt)
  * sizes, respectively.  These are obsolescent (this information should
  * be set by the route).
  */
-u_long	tcp_sendspace = 1024*32;
+//u_long	tcp_sendspace = 87380;
+u_long	tcp_sendspace = 65536;
 SYSCTL_ULONG(_net_inet_tcp, TCPCTL_SENDSPACE, sendspace, CTLFLAG_RW,
     &tcp_sendspace , 0, "Maximum outgoing TCP datagram size");
-u_long	tcp_recvspace = 1024*64;
+//u_long	tcp_recvspace = 65536;
+u_long	tcp_recvspace = 87380;
 SYSCTL_ULONG(_net_inet_tcp, TCPCTL_RECVSPACE, recvspace, CTLFLAG_RW,
     &tcp_recvspace , 0, "Maximum incoming TCP datagram size");
 
