@@ -17,6 +17,12 @@
 
 #include <osv/debug.hh>
 #include <osv/net_trace.hh>
+#include <osv/trace.hh>
+
+TRACEPOINT(trace_classifier_add, "");
+TRACEPOINT(trace_classifier_add_ret, "");
+TRACEPOINT(trace_classifier_remove, "");
+TRACEPOINT(trace_classifier_remove_ret, "");
 
 std::ostream& operator<<(std::ostream& os, in_addr ia)
 {
@@ -84,19 +90,23 @@ classifier::classifier()
 
 void classifier::add(ipv4_tcp_conn_id id, net_channel* channel)
 {
+    trace_classifier_add();
     WITH_LOCK(_mtx) {
         _ipv4_tcp_channels.emplace(id, channel);
     }
+    trace_classifier_add_ret();
 }
 
 void classifier::remove(ipv4_tcp_conn_id id)
 {
+    trace_classifier_remove();
     WITH_LOCK(_mtx) {
         auto i = _ipv4_tcp_channels.owner_find(id,
                 std::hash<ipv4_tcp_conn_id>(), key_item_compare());
         assert(i);
         _ipv4_tcp_channels.erase(i);
     }
+    trace_classifier_remove_ret();
 }
 
 bool classifier::post_packet(mbuf* m)
