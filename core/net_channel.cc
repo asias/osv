@@ -19,10 +19,20 @@
 #include <osv/net_trace.hh>
 #include <osv/trace.hh>
 
+TRACEPOINT(trace_net_channel_process_queue, "");
+TRACEPOINT(trace_net_channel_process_queue_ret, "");
+TRACEPOINT(trace_net_channel_wake_pollers, "");
+TRACEPOINT(trace_net_channel_wake_pollers_ret, "");
+TRACEPOINT(trace_net_channel_add_poller, "");
+TRACEPOINT(trace_net_channel_add_poller_ret, "");
+TRACEPOINT(trace_net_channel_del_poller, "");
+TRACEPOINT(trace_net_channel_del_poller_ret, "");
 TRACEPOINT(trace_classifier_add, "");
 TRACEPOINT(trace_classifier_add_ret, "");
 TRACEPOINT(trace_classifier_remove, "");
 TRACEPOINT(trace_classifier_remove_ret, "");
+TRACEPOINT(trace_classifier_post_packet, "");
+TRACEPOINT(trace_classifier_post_packet_ret, "");
 
 std::ostream& operator<<(std::ostream& os, in_addr ia)
 {
@@ -38,14 +48,17 @@ std::ostream& operator<<(std::ostream& os, ipv4_tcp_conn_id id)
 
 void net_channel::process_queue()
 {
+    trace_net_channel_process_queue();
     mbuf* m;
     while (_queue.pop(m)) {
         _process_packet(m);
     }
+    trace_net_channel_process_queue_ret();
 }
 
 void net_channel::wake_pollers()
 {
+    trace_net_channel_wake_pollers();
     WITH_LOCK(osv::rcu_read_lock) {
         auto& pl = *_pollers.read();
         for (pollreq* pr : pl) {
@@ -54,10 +67,12 @@ void net_channel::wake_pollers()
             pr->_poll_thread.wake();
         }
     }
+    trace_net_channel_wake_pollers_ret();
 }
 
 void net_channel::add_poller(pollreq& pr)
 {
+    trace_net_channel_add_poller();
     WITH_LOCK(_pollers_mutex) {
         auto old = _pollers.read_by_owner();
         std::unique_ptr<std::vector<pollreq*>> neww{new std::vector<pollreq*>};
@@ -68,10 +83,12 @@ void net_channel::add_poller(pollreq& pr)
         _pollers.assign(neww.release());
         osv::rcu_dispose(old);
     }
+    trace_net_channel_add_poller_ret();
 }
 
 void net_channel::del_poller(pollreq& pr)
 {
+    trace_net_channel_del_poller();
     WITH_LOCK(_pollers_mutex) {
         auto old = _pollers.read_by_owner();
         std::unique_ptr<std::vector<pollreq*>> neww{new std::vector<pollreq*>};
@@ -82,6 +99,7 @@ void net_channel::del_poller(pollreq& pr)
         _pollers.assign(neww.release());
         osv::rcu_dispose(old);
     }
+    trace_net_channel_del_poller_ret();
 }
 
 classifier::classifier()
@@ -111,15 +129,18 @@ void classifier::remove(ipv4_tcp_conn_id id)
 
 bool classifier::post_packet(mbuf* m)
 {
+    trace_classifier_post_packet();
     WITH_LOCK(osv::rcu_read_lock) {
         if (auto nc = classify_ipv4_tcp(m)) {
             log_packet_in(m, NETISR_ETHER);
             nc->push(m);
             // FIXME: find a way to batch wakes
             nc->wake();
+            trace_classifier_post_packet_ret();
             return true;
         }
     }
+    trace_classifier_post_packet_ret();
     return false;
 }
 
