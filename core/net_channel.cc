@@ -103,6 +103,7 @@ void net_channel::del_poller(pollreq& pr)
 }
 
 classifier::classifier()
+    : _ipv4_tcp_channels(new ipv4_tcp_channels)
 {
 }
 
@@ -110,7 +111,11 @@ void classifier::add(ipv4_tcp_conn_id id, net_channel* channel)
 {
     trace_classifier_add();
     WITH_LOCK(_mtx) {
-        _ipv4_tcp_channels.emplace(id, channel);
+        auto old = _ipv4_tcp_channels.read_by_owner();
+        std::unique_ptr<ipv4_tcp_channels> neww{new ipv4_tcp_channels(*old)};
+        neww->emplace(id, channel);
+        _ipv4_tcp_channels.assign(neww.release());
+        osv::rcu_dispose(old);
     }
     trace_classifier_add_ret();
 }
@@ -119,10 +124,11 @@ void classifier::remove(ipv4_tcp_conn_id id)
 {
     trace_classifier_remove();
     WITH_LOCK(_mtx) {
-        auto i = _ipv4_tcp_channels.owner_find(id,
-                std::hash<ipv4_tcp_conn_id>(), key_item_compare());
-        assert(i);
-        _ipv4_tcp_channels.erase(i);
+        auto old = _ipv4_tcp_channels.read_by_owner();
+        std::unique_ptr<ipv4_tcp_channels> neww{new ipv4_tcp_channels(*old)};
+        neww->erase(id);
+        _ipv4_tcp_channels.assign(neww.release());
+        osv::rcu_dispose(old);
     }
     trace_classifier_remove_ret();
 }
@@ -177,10 +183,10 @@ net_channel* classifier::classify_ipv4_tcp(mbuf* m)
     auto src_port = ntohs(tcp_hdr->th_sport);
     auto dst_port = ntohs(tcp_hdr->th_dport);
     auto id = ipv4_tcp_conn_id{src_addr, dst_addr, src_port, dst_port};
-    auto i = _ipv4_tcp_channels.reader_find(id,
-            std::hash<ipv4_tcp_conn_id>(), key_item_compare());
-    if (!i) {
+    auto ht = _ipv4_tcp_channels.read();
+    auto i = ht->find(id);
+    if (i == ht->end()) {
         return nullptr;
     }
-    return i->chan;
+    return i->second;
 }
