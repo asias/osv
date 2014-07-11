@@ -106,6 +106,7 @@
 #include <osv/poll.h>
 #include <sys/epoll.h>
 #include <osv/debug.h>
+#include <osv/trace.hh>
 #include <cinttypes>
 
 #include <bsd/porting/netport.h>
@@ -127,6 +128,9 @@
 #include <bsd/sys/net/vnet.h>
 
 #define uipc_d(...) tprintf_d("uipc_socket", __VA_ARGS__)
+
+TRACEPOINT(trace_soclose, "");
+TRACEPOINT(trace_soclose_ret, "");
 
 static int	soreceive_rcvoob(struct socket *so, struct uio *uio,
 		    int flags);
@@ -600,6 +604,8 @@ static void flush_net_channel(struct socket *so)
 int
 soclose(struct socket *so)
 {
+    trace_soclose();
+
 	int error = 0;
 	uipc_d("soclose() so=%" PRIx64, (uint64_t)so);
 	KASSERT(!(so->so_state & SS_NOFDREF), ("soclose: SS_NOFDREF on enter"));
@@ -661,6 +667,7 @@ drop:
 	so->fp = NULL;
 	sorele(so);
 	CURVNET_RESTORE();
+    trace_soclose_ret();
 	return (error);
 }
 
