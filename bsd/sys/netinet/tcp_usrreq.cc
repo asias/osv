@@ -84,6 +84,10 @@
 #include <bsd/sys/netinet/tcp_offload.h>
 
 #include <osv/poll.h>
+#include <osv/trace.hh>
+
+TRACEPOINT(trace_tcp_usr_disconnect, "");
+TRACEPOINT(trace_tcp_usr_disconnect_ret, "");
 
 /*
  * TCP protocol interface to socket abstraction.
@@ -553,6 +557,7 @@ out:
 static int
 tcp_usr_disconnect(struct socket *so)
 {
+    trace_tcp_usr_disconnect();
 	struct inpcb *inp;
 	struct tcpcb *tp = NULL;
 	int error = 0;
@@ -573,6 +578,7 @@ out:
 	TCPDEBUG2(PRU_DISCONNECT);
 	INP_UNLOCK(inp);
 	INP_INFO_WUNLOCK(&V_tcbinfo);
+    trace_tcp_usr_disconnect_ret();
 	return (error);
 }
 
