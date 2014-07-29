@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(test_async_task_fires)
         task.reschedule(100_ms);
     }
 
-    assert_resolves(done, 200_ms);
+    assert_resolves(done, 1_s);
 }
 #if 0
 BOOST_AUTO_TEST_CASE(test_async_task_can_be_cancelled)
