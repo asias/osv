@@ -44,13 +44,14 @@ BOOST_AUTO_TEST_CASE(test_async_task_fires)
 {
     std::promise<bool> done;
     mutex lock;
-    SCOPE_LOCK(lock);
+    //SCOPE_LOCK(lock);
 
-    timer_task task(lock, [&] {
-        done.set_value(true);
-    });
-
-    task.reschedule(100_ms);
+    WITH_LOCK(lock) {
+        timer_task task(lock, [&] {
+            done.set_value(true);
+        });
+        task.reschedule(100_ms);
+    }
 
     assert_resolves(done, 200_ms);
 }
