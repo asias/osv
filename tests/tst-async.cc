@@ -280,17 +280,20 @@ BOOST_AUTO_TEST_CASE(test_task_which_is_scheduled_second_but_with_sooner_expirat
     BOOST_REQUIRE(values[1] == 1);
 }
 
-#if 0
 BOOST_AUTO_TEST_CASE(test_timers_with_same_expiration_time_fire_separately)
 {
     std::promise<bool> done;
     std::atomic<int> counter {0};
     const int n_tasks = 10;
     timer_task* tasks[n_tasks];
-    mutex lock[n_tasks];
+    mutex locks[n_tasks];
+
+    for (auto& l : locks) {
+        l.lock();
+    }
 
     for (int i = 0; i < n_tasks; i++) {
-        tasks[i] = new timer_task(lock[i], [&] {
+        tasks[i] = new timer_task(locks[i], [&] {
             if (++counter == n_tasks) {
                 done.set_value(true);
             }
@@ -301,9 +304,7 @@ BOOST_AUTO_TEST_CASE(test_timers_with_same_expiration_time_fire_separately)
 
     for (int i = 0; i < n_tasks; i++) {
         auto task_ptr = tasks[i];
-        WITH_LOCK(lock[i]) {
         task_ptr->reschedule(deadline);
-        }
     }
 
     assert_resolves(done, 15_ms);
@@ -312,7 +313,6 @@ BOOST_AUTO_TEST_CASE(test_timers_with_same_expiration_time_fire_separately)
         delete task_ptr;
     }
 }
-#endif
 
 BOOST_AUTO_TEST_CASE(test_is_pending)
 {
