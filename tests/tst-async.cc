@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_async_task_fires)
 
     assert_resolves(done, 200_ms);
 }
-
+#if 0
 BOOST_AUTO_TEST_CASE(test_async_task_can_be_cancelled)
 {
     std::promise<bool> done;
@@ -442,3 +442,4 @@ BOOST_AUTO_TEST_CASE(test_serial_timer__callback_fires_if_not_cancelled)
 
     BOOST_REQUIRE(counter == 1);
 }
+#endif
