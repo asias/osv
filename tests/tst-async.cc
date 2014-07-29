@@ -10,7 +10,7 @@
 #include <osv/async.hh>
 #include <osv/clock.hh>
 #include <osv/trace.hh>
-#include <osv/preempt-lock.hh>
+//#include <osv/preempt-lock.hh>
 #include <boost/test/unit_test.hpp>
 #include <future>
 
