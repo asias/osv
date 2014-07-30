@@ -20,6 +20,7 @@
 #include <osv/condvar.h>
 #include <osv/semaphore.hh>
 #include <osv/mmu.hh>
+#include <lockfree/unordered-queue-mpsc.hh>
 
 extern "C" void thread_mark_emergency();
 
@@ -272,6 +273,58 @@ public:
 
 /// Hold to mark self as a memory reclaimer
 extern reclaimer_lock_type reclaimer_lock;
+
+class page_pool {
+public:
+    struct page_chain {
+        page_chain *next;
+    };
+
+    page_pool(int max_size) : _max_size(max_size) { }
+
+    ~page_pool()
+    {
+        auto* page = _pages.pop();
+        while (page != nullptr) {
+             free_page(page);
+             page = _pages.pop();
+        }
+    }
+
+    void free(page_chain* page)
+    {
+        if (_size++ < _max_size) {
+            _pages.push(page);
+            return;
+        } else {
+            _size--;
+            free_page(page);
+        }
+    }
+
+    void free(void* buf)
+    {
+        buf = align_down(buf, page_size);
+        auto page = static_cast<page_chain*>(buf);
+        free(page);
+    }
+
+    struct page_chain* alloc()
+    {
+        auto* page = _pages.pop();
+        if (page == nullptr) {
+            page = static_cast<page_chain*>(alloc_page());
+        } else {
+            _size--;
+        }
+        return page;
+    }
+
+private:
+    lockfree::unordered_queue_mpsc<page_chain> _pages;
+    unsigned int _max_size;
+    std::atomic<unsigned int> _size{0};
+};
 
 }
 
