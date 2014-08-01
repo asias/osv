@@ -1172,7 +1172,8 @@ private:
     size_t _watermarks_hi{_max_size * 3 / 4};
 };
 
-class page_buffer_pool global_page_buffer_pool{512};
+class page_buffer_pool global_page_buffer_pool{512}
+    __attribute__((init_priority((int)init_prio::fpranges)));
 
 static void refill_page_buffer()
 {
