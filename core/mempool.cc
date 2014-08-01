@@ -1164,7 +1164,7 @@ private:
     size_t _watermarks_hi{_max_size * 3 / 4};
 };
 
-class page_buffer_pool global_page_buffer_pool;
+class page_buffer_pool global_page_buffer_pool{};
 
 static void refill_page_buffer()
 {
