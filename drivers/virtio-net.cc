@@ -56,7 +56,6 @@ using namespace memory;
 namespace virtio {
 
 int net::_instance = 0;
-memory::page_pool net::_page_pool{256};
 
 #define net_tag "virtio-net"
 #define net_d(...)   tprintf_d(net_tag, __VA_ARGS__)
@@ -558,7 +557,8 @@ void net::free_buffer_and_refcnt(void* buffer, void* refcnt)
 
 void net::do_free_buffer(void* buffer)
 {
-    _page_pool.free(buffer);
+    buffer = align_down(buffer, page_size);
+    memory::free_page(buffer);
 }
 
 void net::fill_rx_ring()
@@ -568,11 +568,12 @@ void net::fill_rx_ring()
     vring* vq = _rxq.vqueue;
 
     while (vq->avail_ring_not_empty()) {
-        auto page = _page_pool.alloc();
+        auto page = memory::alloc_page();
+
         vq->init_sg();
         vq->add_in_sg(page, memory::page_size);
         if (!vq->add_buf(page)) {
-            _page_pool.free(page);
+            memory::free_page(page);
             break;
         }
         added++;

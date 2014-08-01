@@ -274,6 +274,7 @@ public:
 /// Hold to mark self as a memory reclaimer
 extern reclaimer_lock_type reclaimer_lock;
 
+#if 0
 class page_pool {
 public:
     struct page_chain {
@@ -325,7 +326,7 @@ private:
     unsigned int _max_size;
     std::atomic<unsigned int> _size{0};
 };
-
+#endif
 }
 
 #endif

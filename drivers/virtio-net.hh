@@ -18,7 +18,6 @@
 #include <bsd/sys/sys/mbuf.h>
 
 #include <osv/percpu_xmit.hh>
-#include <osv/mempool.hh>
 
 #include "drivers/virtio.hh"
 #include "drivers/pci-device.hh"
@@ -504,8 +503,6 @@ private:
     static int _instance;
     int _id;
     struct ifnet* _ifn;
-
-    static memory::page_pool _page_pool;
 };
 
 }

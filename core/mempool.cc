@@ -1054,6 +1054,7 @@ static unsigned large_object_size(void *obj)
 
 struct page_buffer {
     static constexpr size_t max = 512;
+    static constexpr size_t batch = max / 2;
     size_t nr = 0;
     void* free[max];
 };
@@ -1065,28 +1066,132 @@ public:
     struct page_chain {
         page_chain *next;
     };
-    void refill() {}
-    void unfill() {}
+
+    // Refill the global page_buffer_pool, get pages from free_page_ranges
+    void refill()
+    {
+        SCOPE_LOCK(free_page_ranges_lock);
+        printf("page_buffer_pool:refill\n");
+
+        reclaimer_thread.wait_for_minimum_memory();
+        if (free_page_ranges.empty()) {
+            // That is almost a guaranteed oom, but we can still have some hope
+            // if we the current allocation is a small one. Another advantage
+            // of waiting here instead of oom'ing directly is that we can have
+            // less points in the code where we can oom, and be more
+            // predictable.
+            reclaimer_thread.wait_for_memory(mmu::page_size);
+        }
+
+        auto total_size = 0;
+        WITH_LOCK(preempt_lock) {
+            while (_size++ < _watermarks_hi) {
+                auto page = reinterpret_cast<page_chain*>(free_page_ranges.alloc(page_size));
+                _pages.push(page);
+                total_size += page_size;
+            }
+        }
+        // That will wake up the reclaimer, we can't do that while holding the preempt_lock
+        // condvar's wake() will take a mutex that may sleep, that will require preemption
+        // to be enabled.
+        on_alloc(total_size);
+
+        printf("page_buffer_pool:refill, total_size=%d, _size=%d, _watermarks_hi=%d, _watermarks_lo=%d\n",
+                total_size, _size.load(std::memory_order_relaxed), _watermarks_hi, _watermarks_lo);
+    }
+
+    // Unfill the global page_buffer_pool, return pages to free_page_ranges
+    void unfill()
+    {
+        SCOPE_LOCK(free_page_ranges_lock);
+        printf("page_buffer_pool:unfill\n");
+
+        WITH_LOCK(preempt_lock) {
+            while (_size-- > _watermarks_lo) {
+                auto page = _pages.pop();
+                assert(page != nullptr);
+                auto pr = new (page) page_range(page_size);
+                free_page_range_locked(pr);
+            }
+        }
+    }
+
+    std::vector<void *> alloc()
+    {
+        std::vector<void *> pages;
+        size_t nr = 0;
+
+        while (nr < page_buffer::batch) {
+            if (_size == 0) {
+                refill();
+            } else if (_size-- < _watermarks_lo ) {
+                _size++;
+                refill();
+            } else {
+                auto* page = _pages.pop();
+                assert(page != nullptr);
+                pages.push_back(page);
+                nr++;
+            }
+        }
+
+        return pages;
+    }
+
+    void free(const std::vector<void *>& pages)
+    {
+        size_t nr = 0;
+
+        while (nr < page_buffer::batch) {
+            if (_size++ > _watermarks_hi) {
+                _size--;
+                unfill();
+            } else {
+                auto p = static_cast<page_chain*>(pages[nr]);
+                _pages.push(p);
+                nr++;
+            }
+        }
+    }
+
 private:
     lockfree::unordered_queue_mpsc<page_chain> _pages;
-    size_t _cpu_nr{4};
-    unsigned int _max_size = page_buffer.max * _cpu_nr; 
-    std::atomic<unsigned int> _size{0};
+    // FIXME: Set to num of online cpus
+    size_t _cpu_nr{1};
+    size_t _max_size{page_buffer::max * _cpu_nr};
+    std::atomic<size_t> _size{0};
+    size_t _watermarks_lo{_max_size * 1 / 4};
+    size_t _watermarks_hi{_max_size * 3 / 4};
 };
+
+class page_buffer_pool global_page_buffer_pool;
 
 static void refill_page_buffer()
 {
-    auto total_size = 0;
     WITH_LOCK(preempt_lock) {
         auto& pbuf = *percpu_page_buffer;
-        auto limit = (pbuf.max + 1) / 2;
-        auto npages = limit - pbuf.nr;
-        while (pbuf.nr < limit) {
-            pbuf.free[pbuf.nr++] = static_cast<void*>(free_page_ranges.alloc(page_size));
-            total_size += page_size;
+        auto pages = global_page_buffer_pool.alloc();
+        assert(pages.size() == pbuf.batch);
+        for (auto& page : pages) {
+            pbuf.free[pbuf.nr++] = page;
         }
     }
 }
+
+static void unfill_page_buffer()
+{
+    WITH_LOCK(preempt_lock) {
+        auto& pbuf = *percpu_page_buffer;
+        std::vector<void *> pages;
+        while (pbuf.nr > pbuf.max / 2) {
+            auto v = pbuf.free[--pbuf.nr];
+            pages.push_back(v);
+        }
+        assert(pages.size() == pbuf.batch);
+        global_page_buffer_pool.free(pages);
+    }
+}
+
 #if 0
 static void refill_page_buffer()
 {
@@ -1118,7 +1223,6 @@ static void refill_page_buffer()
         on_alloc(total_size);
     }
 }
-#endif 
 
 static void unfill_page_buffer()
 {
@@ -1134,6 +1238,7 @@ static void unfill_page_buffer()
         }
     }
 }
+#endif
 
 static void* alloc_page_local()
 {
