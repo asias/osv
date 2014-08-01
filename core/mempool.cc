@@ -1068,6 +1068,7 @@ public:
         _watermarks_lo(max_size * 1 / 4),
         _watermarks_hi(max_size * 3 / 4)
     {
+        printf("page_buffer_pool con---->\n");
     }
 
     struct page_chain {
