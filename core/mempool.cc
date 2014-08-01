@@ -1060,6 +1060,34 @@ struct page_buffer {
 
 PERCPU(page_buffer, percpu_page_buffer);
 
+class page_buffer_pool {
+public:
+    struct page_chain {
+        page_chain *next;
+    };
+    void refill() {}
+    void unfill() {}
+private:
+    lockfree::unordered_queue_mpsc<page_chain> _pages;
+    size_t _cpu_nr{4};
+    unsigned int _max_size = page_buffer.max * _cpu_nr; 
+    std::atomic<unsigned int> _size{0};
+};
+
+static void refill_page_buffer()
+{
+    auto total_size = 0;
+    WITH_LOCK(preempt_lock) {
+        auto& pbuf = *percpu_page_buffer;
+        auto limit = (pbuf.max + 1) / 2;
+        auto npages = limit - pbuf.nr;
+        while (pbuf.nr < limit) {
+            pbuf.free[pbuf.nr++] = static_cast<void*>(free_page_ranges.alloc(page_size));
+            total_size += page_size;
+        }
+    }
+}
+#if 0
 static void refill_page_buffer()
 {
     WITH_LOCK(free_page_ranges_lock) {
@@ -1090,6 +1118,7 @@ static void refill_page_buffer()
         on_alloc(total_size);
     }
 }
+#endif 
 
 static void unfill_page_buffer()
 {
