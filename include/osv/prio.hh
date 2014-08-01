@@ -12,6 +12,7 @@ enum class init_prio : int {
     console = 101,
     sort,
     cpus,
+    page_buffer_pool,
     fpranges,
     pt_root,
     mempool,
