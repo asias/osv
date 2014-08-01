@@ -1063,10 +1063,11 @@ PERCPU(page_buffer, percpu_page_buffer);
 
 class page_buffer_pool {
 public:
-    page_buffer_pool () {
-        _max_size = 512;
-        _watermarks_hi = _max_size * 3 / 4;
-        _watermarks_lo = _max_size * 1 / 4;
+    page_buffer_pool (size_t max_size) :
+        _max_size(max_size),
+        _watermarks_lo(max_size * 1 / 4),
+        _watermarks_hi(max_size * 3 / 4)
+    {
     }
 
     struct page_chain {
@@ -1170,7 +1171,7 @@ private:
     size_t _watermarks_hi{_max_size * 3 / 4};
 };
 
-class page_buffer_pool global_page_buffer_pool{};
+class page_buffer_pool global_page_buffer_pool{512};
 
 static void refill_page_buffer()
 {
