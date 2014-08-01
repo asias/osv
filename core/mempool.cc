@@ -1167,7 +1167,7 @@ public:
 private:
     lockfree::unordered_queue_mpsc<page_chain> _pages;
     // FIXME: Set to num of online cpus
-    size_t _cpu_nr{1};
+    size_t _cpu_nr{sched::cpus.size()};
     size_t _max_size{page_buffer::max * _cpu_nr};
     std::atomic<size_t> _size{0};
     size_t _watermarks_lo{_max_size * 1 / 4};
