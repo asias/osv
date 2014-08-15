@@ -57,7 +57,7 @@ struct ramfs_node {
 };
 
 __BEGIN_DECLS
-struct ramfs_node *ramfs_allocate_node(char *name, int type);
+struct ramfs_node *ramfs_allocate_node(const char *name, int type);
 void ramfs_free_node(struct ramfs_node *node);
 __END_DECLS
 
