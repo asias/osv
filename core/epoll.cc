@@ -29,6 +29,9 @@ TRACEPOINT(trace_epoll_create, "returned fd=%d", int);
 TRACEPOINT(trace_epoll_ctl, "epfd=%d, fd=%d, op=%s event=0x%x", int, int, const char*, int);
 TRACEPOINT(trace_epoll_wait, "epfd=%d, maxevents=%d, timeout=%d", int, int, int);
 TRACEPOINT(trace_epoll_ready, "fd=%d file=%p, event=0x%x", int, file*, int);
+TRACEPOINT(trace_epoll_ring_insert_ok, "");
+TRACEPOINT(trace_epoll_ring_insert_fail, "");
+TRACEPOINT(trace_epoll_ring_overflow, "");
 
 // We implement epoll using poll(), and therefore need to convert epoll's
 // event bits to and poll(). These are mostly the same, so the conversion
@@ -213,9 +216,14 @@ public:
     void flush_activity_ring() {
         epoll_key ep;
         while (_activity_ring.pop(ep)) {
-            _activity.insert(ep);
+            bool ok = _activity.insert(ep).second;
+            if (ok)
+                trace_epoll_ring_insert_ok();
+            else
+                trace_epoll_ring_insert_fail();
         }
         if (_activity_ring_overflow.load(std::memory_order_relaxed)) {
+            trace_epoll_ring_overflow();
             _activity_ring_overflow.store(false, std::memory_order_relaxed);
             for (auto&& x : map) {
                 _activity.insert(x.first);
