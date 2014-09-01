@@ -8,14 +8,11 @@
 # guest's API port). If only a hostname is specified, port 8000 is used by
 # default.
 
-import requests
-import argparse
+import urllib.request
 import json
 import time
 import sys
 import collections
-
-from osv.client import Client
 
 try:
     import curses
@@ -24,17 +21,12 @@ try:
 except:
     clear = '\033[H\033[2J'
 
-parser = argparse.ArgumentParser(description="""
-    Connects to a running OSv guest through the HTTP API and periodically displays
-    the list of threads getting most CPU time, similarly to the Linux top(1)
-    command.""")
-Client.add_arguments(parser)
-
-args = parser.parse_args()
-client = Client(args)
-
-url = client.get_url() + "/os/threads"
-ssl_kwargs = client.get_request_kwargs()
+hostport = 'localhost:8000'
+if len(sys.argv) > 1:
+    if ':' in sys.argv[1]:
+        hostport = sys.argv[1]
+    else:
+        hostport = sys.argv[1] + ":8000"
 
 period = 2.0  # How many seconds between refreshes
 
@@ -44,7 +36,8 @@ name = dict()
 timems = 0
 while True:
     start_refresh = time.time()
-    result = requests.get(url, **ssl_kwargs).json()
+    result_json = urllib.request.urlopen("http://" + hostport + "/os/threads").read().decode()
+    result = json.loads(result_json)
     print(clear, end='')
     newtimems = result['time_ms']
 
