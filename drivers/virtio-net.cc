@@ -416,6 +416,7 @@ void net::receiver()
 {
     vring* vq = _rxq.vqueue;
     std::vector<iovec> packet;
+    sched::thread::current()->set_priority(0.1);
     u64 rx_drops = 0, rx_packets = 0, csum_ok = 0;
     u64 csum_err = 0, rx_bytes = 0;
 
