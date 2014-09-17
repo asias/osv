@@ -98,6 +98,7 @@ static inline mode_t apply_umask(mode_t mode)
 TRACEPOINT(trace_vfs_open, "\"%s\" 0x%x 0%0o", const char*, int, mode_t);
 TRACEPOINT(trace_vfs_open_ret, "%d", int);
 TRACEPOINT(trace_vfs_open_err, "%d", int);
+TRACEPOINT(trace_sendfile, "outfd=%d infd=%d off=%ld, count=%ld", int, int, off_t, size_t);
 
 struct task *main_task;	/* we only have a single process */
 
@@ -1870,6 +1871,8 @@ int sendfile(int out_fd, int in_fd, off_t *_offset, size_t count)
     struct file *out_fp;
     fileref in_f{fileref_from_fd(in_fd)};
     fileref out_f{fileref_from_fd(out_fd)};
+
+    trace_sendfile(out_fd, in_fd, *_offset, count);
 
     if (!in_f || !out_f) {
         return libc_error(EBADF);
