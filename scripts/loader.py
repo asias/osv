@@ -116,6 +116,8 @@ def syminfo(addr):
 
 def translate(path):
     '''given a path, try to find it on the host OS'''
+    if os.path.exists(path):
+        return path
     name = os.path.basename(path)
     for top in [build_dir, mgmt_dir, external, modules, '/zfs']:
         for root, dirs, files in os.walk(top):
