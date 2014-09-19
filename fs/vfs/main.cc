@@ -1897,6 +1897,7 @@ int sendfile(int out_fd, int in_fd, off_t *_offset, size_t count)
 	}
     }
 
+#if 0
     off_t offset ;
 
     if (_offset != nullptr) {
@@ -1916,6 +1917,10 @@ int sendfile(int out_fd, int in_fd, off_t *_offset, size_t count)
     }
 
     auto ret = write(out_fd, src + (offset % PAGESIZE), count);
+#else
+    char src[128] = "HELLO";
+    auto ret = write(out_fd, src, count);
+#endif
 
     if (ret < 0) {
         return libc_error(errno);
@@ -1925,7 +1930,9 @@ int sendfile(int out_fd, int in_fd, off_t *_offset, size_t count)
         *_offset += ret;
     }
 
+#if 0
     assert(munmap(src, count) == 0);
+#endif
 
     return ret;
 }
